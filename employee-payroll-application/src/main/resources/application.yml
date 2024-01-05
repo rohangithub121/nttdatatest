@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: default
+  application:
+    name: Employee-Payroll-Application
+  datasource:
+    url: jdbc:h2:mem:test
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+    generate-unique-name: false
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  sql:
+    init:
+      platform: h2
+server:
+  port: 8080
