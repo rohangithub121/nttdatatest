@@ -7,10 +7,12 @@ import co.uk.employee.payroll.service.EmployeeService;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -28,8 +30,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Optional<EmployeeDetailsDTO> getEmployeeDetails(long employeeId) {
-        return employeeRepository.findById(employeeId).map(this::getEmployeeDetailsDTO);
+    public List<EmployeeDetailsDTO> getEmployeesDetail() {
+        return employeeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+                .stream()
+                .map(this::getEmployeeDetailsDTO)
+                .toList();
     }
 
     private EmployeeDetailsEntity createEmployeeDetailsEntity(EmployeeDetailsDTO employeeDetailsDTO) {
@@ -53,14 +58,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .taxPercentage(employeeDetailsEntity.getTaxPercentage().toString())
                 .pensionPercentage(employeeDetailsEntity.getPensionPercentage().toString())
                 .additionalBenefitAmount(Optional.ofNullable(employeeDetailsEntity.getAdditionalBenefitAmount()).map(BigDecimal::toString).orElse(""))
-                .netSalaryAmount(calculateNetSalary(employeeDetailsEntity))
+                .netSalaryAmount(calculateNetSalary(employeeDetailsEntity).toString())
                 .build();
     }
 
     private BigDecimal calculateNetSalary(EmployeeDetailsEntity employeeDetailsEntity) {
         return employeeDetailsEntity.getGrossSalary()
                 .subtract(getSalaryDeductions(employeeDetailsEntity))
-                .add(getAdditionalBenefitAmount(employeeDetailsEntity.getAdditionalBenefitAmount()));
+                .add(getAdditionalBenefitAmount(employeeDetailsEntity.getAdditionalBenefitAmount()))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getSalaryDeductions(EmployeeDetailsEntity employeeDetailsEntity) {

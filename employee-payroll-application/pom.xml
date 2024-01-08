@@ -43,6 +43,23 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest</artifactId>
+            <version>1.15.3</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.groupcdg.arcmutate</groupId>
+            <artifactId>arcmutate-spring</artifactId>
+            <version>0.0.10</version>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
             <version>3.1.0</version>
@@ -139,9 +156,27 @@
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.15.3</version>
+                <configuration>
+                    <mutationThreshold>100</mutationThreshold>
+                    <targetClasses>
+                        <param>co.uk.employee.payroll.service.impl*</param>
+                        <param>co.uk.employee.payroll.controller.*</param>
+                    </targetClasses>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -153,11 +188,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/configuration/*.*</exclude>
-                        <exclude>**/entity/*.*</exclude>
                         <exclude>**/EmployeePayrollApplication.*</exclude>
-                        <exclude>**/EmployeeDetailsDTO.*</exclude>
-                        <exclude>**/EmployeeDetailsDTO.EmployeeDetailsDTOBuilder.*</exclude>
-                        <exclude>**/EmployeeDetailsValidationExceptionHandler.*</exclude>
                     </excludes>
                 </configuration>
 

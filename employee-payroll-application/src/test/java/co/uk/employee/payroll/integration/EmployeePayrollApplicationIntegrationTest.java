@@ -1,6 +1,9 @@
 package co.uk.employee.payroll.integration;
 
 import co.uk.employee.payroll.dto.EmployeeDetailsDTO;
+import co.uk.employee.payroll.repository.EmployeeRepository;
+import com.google.gson.Gson;
+import jakarta.annotation.Resource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -8,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.util.List;
+import java.util.Map;
 
 import static co.uk.employee.payroll.constants.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,8 +38,13 @@ public class EmployeePayrollApplicationIntegrationTest {
 
     private EmployeeDetailsDTO mockEmployeeDetailsWithEmptyPensionPercentDTO;
 
+    @Resource
+    private EmployeeRepository employeeRepository;
+
     @BeforeEach
     public void setUp() {
+        employeeRepository.deleteAll();
+
         mockEmployeeDetailsWithAdditionalAmountDTO = createMockEmployeeDetailsDTO();
 
         mockEmployeeDetailsWithNoAdditionalAmountDTO = createMockEmployeeDetailsDTO();
@@ -57,15 +68,6 @@ public class EmployeePayrollApplicationIntegrationTest {
 
         mockEmployeeDetailsWithEmptyPensionPercentDTO = createMockEmployeeDetailsDTO();
         mockEmployeeDetailsWithEmptyPensionPercentDTO.setPensionPercentage(null);
-    }
-
-    @Test
-    public void testGetEmployeeDetailsWhenEmployeeNotPresent(@Autowired final WebTestClient webTestClient) {
-        webTestClient.get()
-                .uri(GET_EMPLOYEE_DETAILS_URL)
-                .exchange()
-                .expectStatus()
-                .isNotFound();
     }
 
     @Test
@@ -150,6 +152,43 @@ public class EmployeePayrollApplicationIntegrationTest {
                 .isCreated()
                 .expectBody(EmployeeDetailsDTO.class)
                 .value(this::verifyNoAdditionalBenefitsAmount);
+    }
+
+    @Test
+    public void testGetEmployeesDetails(@Autowired final WebTestClient webTestClient) {
+        webTestClient.post()
+                .uri(POST_EMPLOYEE_PAYLOAD_PATH)
+                .bodyValue(mockEmployeeDetailsWithAdditionalAmountDTO)
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectBody(EmployeeDetailsDTO.class)
+                .value(this::verifyAdditionalBenefitsAmount);
+
+        webTestClient.post()
+                .uri(POST_EMPLOYEE_PAYLOAD_PATH)
+                .bodyValue(mockEmployeeDetailsWithNoAdditionalAmountDTO)
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectBody(EmployeeDetailsDTO.class)
+                .value(this::verifyNoAdditionalBenefitsAmount);
+
+        webTestClient.get()
+                .uri(GET_EMPLOYEE_DETAILS_URL)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(List.class)
+                .value(this::verifyEmployeesDetail);
+    }
+
+    private void verifyEmployeesDetail(List<Map<String, String>> employeeDetailsDTO) {
+        assertEquals(employeeDetailsDTO.size(), 2);
+
+        var gson = new Gson();
+        verifyAdditionalBenefitsAmount(gson.fromJson(gson.toJson(employeeDetailsDTO.get(0)), EmployeeDetailsDTO.class));
+        verifyNoAdditionalBenefitsAmount(gson.fromJson(gson.toJson(employeeDetailsDTO.get(1)), EmployeeDetailsDTO.class));
     }
 
     private void verifyAdditionalBenefitsAmount(EmployeeDetailsDTO employeeDetailsDTO) {

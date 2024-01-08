@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/employee/payroll")
@@ -24,11 +26,9 @@ public class EmployeeDetailsController {
         return new ResponseEntity<>(employeeService.saveEmployeeDetails(employeeDetailsDTO), HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Gets employee details from database", response = EmployeeDetailsDTO.class)
-    @GetMapping("/employees-detail/{employeeId}")
-    public ResponseEntity<EmployeeDetailsDTO> getEmployeeDetails(@PathVariable(name = "employeeId") final long employeeId) {
-        return employeeService.getEmployeeDetails(employeeId)
-                .map(employeeDetailsDTO -> new ResponseEntity<>(employeeDetailsDTO, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @ApiOperation(value = "Gets employees detail from database", response = List.class)
+    @GetMapping("/employees-detail")
+    public List<EmployeeDetailsDTO> getEmployeeDetail() {
+        return employeeService.getEmployeesDetail();
     }
 }

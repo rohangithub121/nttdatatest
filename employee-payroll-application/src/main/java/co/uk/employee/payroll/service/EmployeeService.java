@@ -2,7 +2,7 @@ package co.uk.employee.payroll.service;
 
 import co.uk.employee.payroll.dto.EmployeeDetailsDTO;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface EmployeeService {
     /**
@@ -14,10 +14,9 @@ public interface EmployeeService {
     EmployeeDetailsDTO saveEmployeeDetails(EmployeeDetailsDTO employeeDetailsDTO);
 
     /**
-     * Gets the employee details for the given employee id.
+     * Gets all the employee details present in the system.
      *
-     * @param employeeId employee id
-     * @return employeeDetailsDTO for the given employee id
+     * @return list of employeeDetailsDTO present in the system
      */
-    Optional<EmployeeDetailsDTO> getEmployeeDetails(long employeeId);
+    List<EmployeeDetailsDTO> getEmployeesDetail();
 }

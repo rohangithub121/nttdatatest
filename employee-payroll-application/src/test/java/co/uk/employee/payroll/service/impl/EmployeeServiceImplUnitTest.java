@@ -6,13 +6,14 @@ import co.uk.employee.payroll.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static co.uk.employee.payroll.constants.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EmployeeServiceImplUnitTest {
     private final EmployeeRepository employeeRepositoryMock = Mockito.mock(EmployeeRepository.class);
@@ -44,7 +45,7 @@ public class EmployeeServiceImplUnitTest {
     @Test
     public void testSaveEmployeeDetailsWhenAdditionalBenefitAmountIsNotPresent() {
         Mockito.when(employeeRepositoryMock.save(Mockito.any())).thenReturn(mockEmployeeDetailsWithNoAdditionalAmountEntity);
-        Mockito.when(employeeRepositoryMock.findById(MOCK_EMP_ID)).thenReturn(Optional.of(mockEmployeeDetailsWithNoAdditionalAmountEntity));
+        Mockito.when(employeeRepositoryMock.findById(MOCK_ID)).thenReturn(Optional.of(mockEmployeeDetailsWithNoAdditionalAmountEntity));
 
         var actualEmployeeDetailsDTO = testObj.saveEmployeeDetails(mockEmployeeDetailsWithNoAdditionalAmountDTO);
 
@@ -52,23 +53,15 @@ public class EmployeeServiceImplUnitTest {
     }
 
     @Test
-    public void testGetEmployeeDetailsWhenEmployeeIsPresent() {
-        Mockito.when(employeeRepositoryMock.findById(MOCK_EMP_ID)).thenReturn(Optional.of(mockEmployeeDetailsWithAdditionalAmountEntity));
+    public void testGetEmployeeDetails() {
+        Mockito.when(employeeRepositoryMock.findAll(Sort.by(Sort.Direction.ASC, "id")))
+                .thenReturn(List.of(mockEmployeeDetailsWithAdditionalAmountEntity, mockEmployeeDetailsWithNoAdditionalAmountEntity));
 
-        var actualEmployeeDetailsDTO = testObj.getEmployeeDetails(MOCK_EMP_ID);
+        var employees = testObj.getEmployeesDetail();
+        assertEquals(employees.size(), 2);
 
-        assertTrue(actualEmployeeDetailsDTO.isPresent());
-
-        checkAssertions(actualEmployeeDetailsDTO.get(), mockEmployeeDetailsWithAdditionalAmountDTO);
-    }
-
-    @Test
-    public void testGetEmployeeDetailsWhenEmployeeIsNotPresent() {
-        Mockito.when(employeeRepositoryMock.findById(MOCK_EMP_ID)).thenReturn(Optional.of(mockEmployeeDetailsWithNoAdditionalAmountEntity));
-
-        var actualEmployeeDetailsDTO = testObj.getEmployeeDetails(MOCK_EMP_ID_NOT_PRESENT);
-
-        assertTrue(actualEmployeeDetailsDTO.isEmpty());
+        checkAssertions(employees.get(0), mockEmployeeDetailsWithAdditionalAmountDTO);
+        checkAssertions(employees.get(1), mockEmployeeDetailsWithNoAdditionalAmountDTO);
     }
 
     private void checkAssertions(EmployeeDetailsDTO actualEmployeeDetailsDTO, EmployeeDetailsDTO mockEmployeeDetailsDTO) {
@@ -108,7 +101,7 @@ public class EmployeeServiceImplUnitTest {
 
     private EmployeeDetailsEntity createMockEmployeeDetailsWithNoAdditionalAmountEntity() {
         return EmployeeDetailsEntity.builder()
-                .id(MOCK_EMP_ID)
+                .id(MOCK_ID)
                 .name(MOCK_NAME)
                 .designation(MOCK_ENGINEER)
                 .projectName(MOCK_PROJECT_NAME)
